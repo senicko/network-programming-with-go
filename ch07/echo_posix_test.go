@@ -60,7 +60,7 @@ func TestEchoServerUnixDatagram(t *testing.T) {
 	}
 
 	buf := make([]byte, 1024)
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 3; i++ { // read 3 ping messages
 		n, addr, err := client.ReadFrom(buf)
 		if err != nil {
 			t.Fatal(err)

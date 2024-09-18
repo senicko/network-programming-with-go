@@ -43,7 +43,7 @@ func TestEchoServerUnix(t *testing.T) {
 	defer func() { _ = conn.Close() }()
 
 	msg := []byte("ping")
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 3; i++ { // write 3 ping messages
 		_, err = conn.Write(msg)
 		if err != nil {
 			t.Fatal(err)
@@ -51,7 +51,7 @@ func TestEchoServerUnix(t *testing.T) {
 	}
 
 	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
+	n, err := conn.Read(buf) // read once from the buffer
 	if err != nil {
 		t.Fatal(err)
 	}
