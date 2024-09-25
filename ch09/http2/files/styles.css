@@ -1,0 +1,20 @@
+body {
+    background: blue;
+}
+
+.spin {
+    animation-name: spin;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    width: 50px;
+}
+
+@keyframes spin {
+    from {
+        transform: translateX(200px);
+    }
+    to {
+        transform: translateX(50px);
+    }
+}

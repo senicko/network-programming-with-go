@@ -2,17 +2,43 @@ package ch09
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/senicko/network-programming-with-go/ch09/handlers"
 )
 
+func getHttpsClientForCerts(certPath string) (*http.Client, error) {
+	cert, err := os.ReadFile(certPath)
+	if err != nil {
+		return nil, err
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(cert)
+
+	tlsConfig := &tls.Config{
+		RootCAs: caCertPool,
+	}
+
+	httpTransport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+
+	return &http.Client{Transport: httpTransport}, nil
+}
+
 func TestSimpleHTTPServer(t *testing.T) {
+	certPath := "./certs/localhost+1.pem"
+	keyPath := "./certs/localhost+1-key.pem"
+
 	srv := &http.Server{
 		Addr: "127.0.0.1:8443",
 		Handler: http.TimeoutHandler(
@@ -22,6 +48,10 @@ func TestSimpleHTTPServer(t *testing.T) {
 		),
 		IdleTimeout:       5 * time.Minute,
 		ReadHeaderTimeout: time.Minute,
+		TLSConfig: &tls.Config{
+
+			InsecureSkipVerify: true,
+		},
 	}
 
 	l, err := net.Listen("tcp", srv.Addr)
@@ -30,7 +60,7 @@ func TestSimpleHTTPServer(t *testing.T) {
 	}
 
 	go func() {
-		err := srv.ServeTLS(l, "./certs/localhost.pem", "./certs/localhost-key.pem")
+		err := srv.ServeTLS(l, certPath, keyPath)
 		if err != http.ErrServerClosed {
 			t.Error(err)
 		}
@@ -48,7 +78,7 @@ func TestSimpleHTTPServer(t *testing.T) {
 	}
 
 	client := new(http.Client)
-	path := fmt.Sprintf("http://%s/", srv.Addr)
+	path := fmt.Sprintf("https://%s/", srv.Addr)
 
 	for i, c := range testCases {
 		r, err := http.NewRequest(c.method, path, c.body)
