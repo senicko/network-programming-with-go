@@ -45,6 +45,7 @@ func (s *Server) ListenAndServeTLS(certFn, keyFn string) error {
 
 	if s.ctx != nil {
 		go func() {
+			// Close the server when context gets cancelled
 			<-s.ctx.Done()
 			_ = l.Close()
 		}()
@@ -57,9 +58,8 @@ func (s *Server) ServeTLS(l net.Listener, certFn, keyFn string) error {
 	// Configure tls config
 	if s.tlsConfig == nil {
 		s.tlsConfig = &tls.Config{
-			CurvePreferences:         []tls.CurveID{tls.CurveP256},
-			MinVersion:               tls.VersionTLS12,
-			PreferServerCipherSuites: true,
+			CurvePreferences: []tls.CurveID{tls.CurveP256},
+			MinVersion:       tls.VersionTLS12,
 		}
 	}
 
